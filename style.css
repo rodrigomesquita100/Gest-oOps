@@ -1,0 +1,483 @@
+body{
+  font-family: system-ui;
+  margin:0;
+  background:#f5f5f5;
+}
+
+.topbar{
+  background:#534AB7;
+  color:#fff;
+  padding:12px;
+}
+
+.container{
+  padding:16px;
+}
+
+.filters{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+input,select,button{
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+.kpis{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.card{
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+  flex:1;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  font-size:13px;
+}
+
+th{
+  background:#fafafa;
+  text-align:left;
+}
+
+%%writefile app.js
+// Helper to format date
+function formatDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${day}/${month}/${year}`;
+}
+
+const hoje = new Date();
+const CLIENTES_RAW = [
+  {
+    nome:"Cliente A",
+    cidade:"Palmas",
+    dias:32,
+    situacao:"Prescrita",
+    horas:1.5
+  },
+  {
+    nome:"Cliente B",
+    cidade:"Araguaína",
+    dias:10,
+    situacao:"Realizado",
+    horas:12
+  },
+  {
+    nome:"Cliente C",
+    cidade:"Gurupi",
+    dias:22,
+    situacao:"Realizado",
+    horas:3
+  }
+];
+
+const CLIENTES = CLIENTES_RAW.map(c => {
+  const data_cadastro = new Date(hoje);
+  data_cadastro.setDate(hoje.getDate() - c.dias);
+  return { ...c, data_cadastro: data_cadastro.toISOString().split('T')[0] }; // Store as YYYY-MM-DD string
+});
+
+let dados = [...CLIENTES];
+
+function render(){
+  const tbody = document.getElementById("tbody");
+
+  tbody.innerHTML = dados.map(c=>{
+    return `
+      <tr>
+        <td>${c.nome}</td>
+        <td>${c.cidade}</td>
+        <td>${formatDate(c.data_cadastro)}</td>
+        <td>${c.situacao}</td>
+        <td>${c.horas}h</td>
+      </tr>
+    `;
+  }).join("");
+
+  atualizarKPIs();
+  renderChart();
+  renderPieChart(); // Call new pie chart render function
+  renderLineChart(); // Call new line chart render function
+}
+
+function atualizarKPIs(){
+  document.getElementById("k-total").innerText = dados.length;
+  document.getElementById("k-crit").innerText = dados.filter(c=>c.dias>30).length;
+  document.getElementById("k-ok").innerText = dados.filter(c=>c.situacao==="Concluído").length;
+}
+
+let chartInstance = null; // Para destruir o gráfico de barras anterior antes de renderizar um novo
+let pieChartInstance = null; // Para destruir o gráfico de pizza anterior
+let lineChartInstance = null; // Para destruir o gráfico de linhas anterior
+
+function renderChart(){
+  const ctx = document.getElementById('hoursChart').getContext('2d');
+
+  if (chartInstance) {
+    chartInstance.destroy(); // Destruir a instância anterior do gráfico de barras
+  }
+
+  const backgroundColors = [
+    'rgba(255, 99, 132, 0.6)',
+    'rgba(54, 162, 235, 0.6)',
+    'rgba(255, 206, 86, 0.6)',
+    'rgba(75, 192, 192, 0.6)',
+    'rgba(153, 102, 255, 0.6)',
+    'rgba(255, 159, 64, 0.6)'
+  ];
+  const borderColors = [
+    'rgba(255, 99, 132, 1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(255, 206, 86, 1)',
+    'rgba(75, 192, 192, 1)',
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
+  ];
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dados.map(c => c.nome),
+      datasets: [{
+        label: 'Horas Trabalhadas',
+        data: dados.map(c => c.horas),
+        backgroundColor: backgroundColors.slice(0, dados.length),
+        borderColor: borderColors.slice(0, dados.length),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      animation: {
+        duration: 1000, // duration in ms
+        easing: 'easeOutQuart' // easing function
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Horas'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Cliente'
+          }
+        }
+      },
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Horas Trabalhadas por Cliente'
+        }
+      }
+    }
+  });
+}
+
+function renderPieChart() {
+  const ctx = document.getElementById('situacaoPieChart').getContext('2d');
+
+  if (pieChartInstance) {
+    pieChartInstance.destroy(); // Destruir a instância anterior do gráfico de pizza
+  }
+
+  const situacoesCounts = dados.reduce((acc, c) => {
+    acc[c.situacao] = (acc[c.situacao] || 0) + 1;
+    return acc;
+  }, {});
+
+  const labels = Object.keys(situacoesCounts);
+  const data = Object.values(situacoesCounts);
+
+  const backgroundColors = [
+    'rgba(255, 99, 132, 0.6)', // Red
+    'rgba(54, 162, 235, 0.6)', // Blue
+    'rgba(255, 206, 86, 0.6)', // Yellow
+    'rgba(75, 192, 192, 0.6)', // Green
+    'rgba(153, 102, 255, 0.6)'  // Purple
+  ];
+
+  const borderColors = [
+    'rgba(255, 99, 132, 1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(255, 206, 86, 1)',
+    'rgba(75, 192, 192, 1)',
+    'rgba(153, 102, 255, 1)'
+  ];
+
+  pieChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: backgroundColors.slice(0, labels.length),
+        borderColor: borderColors.slice(0, labels.length),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Distribuição das Situações dos Clientes'
+        }
+      }
+    }
+  });
+}
+
+function renderLineChart() {
+  const ctx = document.getElementById('hoursLineChart').getContext('2d');
+
+  if (lineChartInstance) {
+    lineChartInstance.destroy(); // Destruir a instância anterior do gráfico de linhas
+  }
+
+  // Aggregate hours by date
+  const hoursByDate = dados.reduce((acc, c) => {
+    const date = c.data_cadastro; // YYYY-MM-DD
+    acc[date] = (acc[date] || 0) + c.horas;
+    return acc;
+  }, {});
+
+  // Create data points for the line chart using x and y properties
+  const chartDataPoints = Object.keys(hoursByDate).sort().map(date => ({
+    x: date,
+    y: hoursByDate[date]
+  }));
+
+  lineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Horas Totais por Data',
+        data: chartDataPoints,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        fill: true,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Evolução das Horas Totais por Data'
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            tooltipFormat: 'dd/MM/yyyy'
+          },
+          title: {
+            display: true,
+            text: 'Data'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Horas Totais'
+          }
+        }
+      }
+    }
+  });
+}
+
+function downloadChart() {
+  const canvas = document.getElementById('hoursChart');
+  const image = canvas.toDataURL('image/png');
+  const link = document.createElement('a');
+  link.href = image;
+  link.download = 'horas_trabalhadas_chart.png';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportPdf() {
+  const element = document.querySelector('.container'); // Or a more specific element if needed
+  const opt = {
+    margin:       1,
+    filename:     'relatorio_clientes.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+
+function filtrar(){
+  const busca = document.getElementById("busca").value.toLowerCase();
+  const sit = document.getElementById("f-sit").value;
+  const dataInicioStr = document.getElementById("f-data-inicio").value;
+  const dataFimStr = document.getElementById("f-data-fim").value;
+
+  dados = CLIENTES.filter(c=>{
+    if(busca && !c.nome.toLowerCase().includes(busca)) return false;
+    if(sit && c.situacao !== sit) return false;
+
+    const clienteData = new Date(c.data_cadastro);
+
+    if (dataInicioStr) {
+      const dataInicio = new Date(dataInicioStr);
+      if (clienteData < dataInicio) return false;
+    }
+    if (dataFimStr) {
+      const dataFim = new Date(dataFimStr);
+      // Include clients on the end date itself
+      if (clienteData > dataFim) return false;
+    }
+
+    return true;
+  });
+
+  render();
+}
+
+// debounce simples
+let timer;
+document.getElementById("busca").addEventListener("input", ()=>{
+  clearTimeout(timer);
+  timer = setTimeout(filtrar, 300);
+});
+
+document.getElementById("f-sit").addEventListener("change", filtrar);
+document.getElementById("f-data-inicio").addEventListener("change", filtrar);
+document.getElementById("f-data-fim").addEventListener("change", filtrar);
+
+function limpar(){
+  document.getElementById("busca").value="";
+  document.getElementById("f-sit").value="";
+  document.getElementById("f-data-inicio").value="";
+  document.getElementById("f-data-fim").value="";
+  dados = [...CLIENTES];
+  render();
+}
+
+render();
+
+from IPython.display import HTML
+html_content = """
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ImplantaGestor V2</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Moment.js for Chart.js time scale -->
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+  <!-- html2pdf.js for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsID53R5SPnt0YfdADCsECUEbVFYOwsRRovJqgerfEEV+KyYbADxnULVZCMflZkC4 دانلودکتاب+Yc0wP1jLHLdLDN56MhFJHWxOfTGgaizrE6SUtPtyjVwN/FCXhMDyaXzB/aAWUccqyqFdtgS/CJqBkzNfNzaK0Lz/PoL8xFrhtL5B8H9vG/eKzX+8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>ImplantaGestor V2</h1>
+</div>
+
+<div class="container">
+
+  <div class="filters">
+    <input type="text" id="busca" placeholder="Buscar cliente...">
+    <select id="f-sit">
+      <option value="">Todas situações</option>
+      <option>Realizado</option>
+      <option>Prescrita</option>
+      <option>Concluído</option>
+      <option>Cancelado</option>
+    </select>
+    <label for="f-data-inicio">De:</label>
+    <input type="date" id="f-data-inicio">
+    <label for="f-data-fim">Até:</label>
+    <input type="date" id="f-data-fim">
+    <button onclick="limpar()">Limpar</button>
+  </div>
+
+  <div class="kpis">
+    <div class="card">Total: <span id="k-total"></span></div>
+    <div class="card">Críticos: <span id="k-crit"></span></div>
+    <div class="card">Concluídos: <span id="k-ok"></span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Cidade</th>
+        <th>Data Cadastro</th>
+        <th>Situação</th>
+        <th>Horas</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div style="margin-top: 20px;">
+    <canvas id="hoursChart"></canvas>
+    <button onclick="downloadChart()" style="margin-top: 10px;">Download Gráfico</button>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <canvas id="situacaoPieChart"></canvas>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <canvas id="hoursLineChart"></canvas>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button onclick="exportPdf()">Exportar Relatório como PDF</button>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
+"""
+HTML(html_content)
