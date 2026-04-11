@@ -1,4 +1,8 @@
 
+const supabaseUrl = "https://przmomhaqfcqjzhnqnmh.supabase.co";
+const supabaseKey = "SUA_PUBLISHABLE_KEY_AQUI";
+
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('tbody');
   const searchInput = document.getElementById('busca');
