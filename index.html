@@ -1,5 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="app.js"></script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -8,28 +7,27 @@
 </head>
 
 <body>
-  <h1>Sistema funcionando 🚀</h1>
 
+  <div id="auth">
+    <h2>Login</h2>
+
+    <input id="email" placeholder="email" />
+    <input id="password" type="password" placeholder="senha" />
+
+    <button onclick="signUp()">Criar conta</button>
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div id="app" style="display:none;">
+    <h1>Sistema logado 🚀</h1>
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <!-- Supabase (APENAS UMA VEZ) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Seu JS (APENAS UMA VEZ) -->
   <script src="app.js"></script>
+
 </body>
 </html>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="app.js"></script>
-
-<div id="auth">
-  <h2>Login</h2>
-
-  <input id="email" placeholder="email" />
-  <input id="password" type="password" placeholder="senha" />
-
-  <button onclick="signUp()">Criar conta</button>
-  <button onclick="login()">Entrar</button>
-</div>
-
-<div id="app" style="display:none;">
-  <h1>Sistema logado 🚀</h1>
-  <button onclick="logout()">Sair</button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="app.js"></script>
