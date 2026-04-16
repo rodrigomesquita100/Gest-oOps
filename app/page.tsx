@@ -1364,7 +1364,7 @@ export default function OpsDash() {
     if (!name||!email||!password) { toast("Preencha todos os campos","red"); return }
     if (users.find(u=>u.email.toLowerCase()===email.toLowerCase())) { toast("E-mail já cadastrado","red"); return }
     const nu = { id:`USR-${Date.now()}`, name, email, password, role, ativo:true }
-    setUsers(p => [...p, nu])
+    setUsers(p => [...p, nu])     syncSupabase('usuarios', nu)
     setModalNewUser(false)
     setNewUserForm({ name:"", email:"", password:"", role:"ops" })
     toast(`Usuário ${name.split(" ")[0]} criado!`, "green")
