@@ -1345,7 +1345,7 @@ export default function OpsDash() {
   const addAnot = (cid) => {
     if (!novaAnot.texto.trim()) { toast("Escreva algo","red"); return }
     const a = { id:Date.now(), tipo:novaAnot.tipo, subtipo:novaAnot.sub, texto:novaAnot.texto, autor:user.name.split(" ")[0], data:nowDT(), sgd:false }
-    setAnotacoes(p => ({ ...p, [cid]: [...(p[cid]||[]), a] }))
+    setAnotacoes(p => ({ ...p, [cid]: [...(p[cid]||[]), a] }))     syncSupabase('anotacoes', {...a, cliente_id: cid, autor_id: a.autorId, horas_decimal: a.horasDecimal||0})
     setNovaAnot(p => ({...p, texto:""}))
     toast("Anotação salva!", "green")
   }
