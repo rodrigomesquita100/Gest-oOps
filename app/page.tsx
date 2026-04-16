@@ -1370,7 +1370,7 @@ export default function OpsDash() {
     toast(`Usuário ${name.split(" ")[0]} criado!`, "green")
   }
   const toggleUserAtivo = (id) =>
-    setUsers(p => p.map(u => u.id===id ? {...u, ativo:!u.ativo} : u))
+    setUsers(p => p.map(u => u.id===id ? {...u, ativo:!u.ativo} : u))     syncSupabase('usuarios', users.find(u=>u.id===id))
   const salvarEdicaoUser = () => {
     setUsers(p => p.map(u => u.id===modalEditUser.id ? {...modalEditUser} : u))
     setModalEditUser(null); toast("Usuário atualizado!", "green")
