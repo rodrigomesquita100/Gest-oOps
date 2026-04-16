@@ -994,7 +994,7 @@ export default function OpsDash() {
       observacao,
     }
     setHistorico(p => [...p, reg])
-    return reg
+    setHistorico(p => [...p, reg])     syncSupabase('historico_status', {...reg, cliente_id: reg.clienteId, status_id: reg.statusId})     return reg
   }
 
   // Estado do painel de implantação (seleção de cliente e form)
