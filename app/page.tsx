@@ -1,4 +1,6 @@
 "use client"
+import { supabase } from '../lib/supabase'
+import { getUsuarios, saveUsuario, deleteUsuario, getClientes, saveCliente, getAnotacoes, saveAnotacao, getFases, saveFase, getHistorico, saveHistorico } from '../lib/db'
 
 import { useState, useRef, useMemo } from "react"
 import {
