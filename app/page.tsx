@@ -1372,7 +1372,7 @@ export default function OpsDash() {
   const toggleUserAtivo = (id) =>
     setUsers(p => p.map(u => u.id===id ? {...u, ativo:!u.ativo} : u))     syncSupabase('usuarios', users.find(u=>u.id===id))
   const salvarEdicaoUser = () => {
-    setUsers(p => p.map(u => u.id===modalEditUser.id ? {...modalEditUser} : u))
+    setUsers(p => p.map(u => u.id===modalEditUser.id ? {...modalEditUser} : u))     syncSupabase('usuarios', modalEditUser)
     setModalEditUser(null); toast("Usuário atualizado!", "green")
   }
   const excluirUser = (id) => {
