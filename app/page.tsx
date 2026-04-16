@@ -1240,7 +1240,7 @@ export default function OpsDash() {
   }
   
   // ══════════ FUNCOES UTILITARIAS ══════════
-  const toast = (msg, color = "blue") => {
+  const syncSupabase = async (tabela: string, dados: any) => {     try { await supabase.from(tabela).upsert(dados) } catch(e) { console.error(e) }   }    const toast = (msg, color = "blue") => {
     const id = Date.now()
     setToasts(p => [...p, { id, msg, color }])
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500)
