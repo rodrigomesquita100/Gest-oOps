@@ -966,7 +966,7 @@ export default function OpsDash() {
   const [loginPass,  setLoginPass]  = useState("")
   const [loginErr,   setLoginErr]   = useState(false)
 
-  const [users,    setUsers]    = useState(SEED_USERS)
+  const [users,    setUsers]    = useState(SEED_USERS)    // Carregar dados do Supabase   useEffect(() => {     const loadData = async () => {       const [dbUsers, dbClientes, dbAnotacoes, dbFases, dbHistorico] = await Promise.all([         getUsuarios(), getClientes(), getAnotacoes(), getFases(), getHistorico()       ])       if (dbUsers.length > 0) setUsers(dbUsers)       if (dbClientes.length > 0) setClients(dbClientes.map((c:any) => ({         ...c, id: c.id, name: c.name, horasNum: c.horas_num, horasRealizadas: c.horas_realizadas,         pctHoras: c.pct_horas, criadoEm: c.criado_em, codSGD: c.cod_sgd, dataAssinatura: c.data_assinatura       })))       if (dbAnotacoes.length > 0) {         const anotObj: any = {}         dbAnotacoes.forEach((a:any) => {           if (!anotObj[a.cliente_id]) anotObj[a.cliente_id] = []           anotObj[a.cliente_id].push({...a, id: a.id, autorId: a.autor_id, horasDecimal: a.horas_decimal})         })         setAnotacoes(anotObj)       }       if (dbFases.length > 0) {         const fasesObj: any = {}         dbFases.forEach((f:any) => { fasesObj[f.cliente_id] = f.dados })         setFasesImplantacao(fasesObj)       }       if (dbHistorico.length > 0) setHistorico(dbHistorico.map((h:any) => ({         ...h, clienteId: h.cliente_id, statusId: h.status_id       })))     }     loadData()   }, [])
   // ══════════ HISTÓRICO DE STATUS (novo modelo central) ══════════
   const [historico, setHistorico] = useState(SEED_HISTORICO)
 
